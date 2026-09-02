@@ -1,0 +1,13 @@
+fastapi
+uvicorn
+langchain
+langchain-community
+langchain-core
+langchain-google-genai
+google-genai
+pymysql
+cryptography
+sqlalchemy
+python-dotenv
+pyjwt
+bcrypt
