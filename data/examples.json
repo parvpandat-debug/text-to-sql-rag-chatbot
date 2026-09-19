@@ -1,0 +1,74 @@
+[
+  {
+    "question": "What are all products in the electronics category?",
+    "sql": "SELECT id, name, price, stock FROM products WHERE category = 'Electronics' ORDER BY price DESC LIMIT 50;"
+  },
+  {
+    "question": "How many total customers do we have?",
+    "sql": "SELECT COUNT(*) AS total_customers FROM customers LIMIT 50;"
+  },
+  {
+    "question": "Find all customers from New York.",
+    "sql": "SELECT id, name, email, city FROM customers WHERE city = 'New York' LIMIT 50;"
+  },
+  {
+    "question": "What is the total revenue across all completed orders?",
+    "sql": "SELECT SUM(total_amount) AS total_revenue FROM orders WHERE status = 'completed' LIMIT 50;"
+  },
+  {
+    "question": "List the top 5 most expensive products.",
+    "sql": "SELECT id, name, price, category FROM products ORDER BY price DESC LIMIT 5;"
+  },
+  {
+    "question": "Show all orders placed in the last 30 days.",
+    "sql": "SELECT id, customer_id, total_amount, status, order_date FROM orders WHERE order_date >= DATE_SUB(CURDATE(), INTERVAL 30 DAY) ORDER BY order_date DESC LIMIT 50;"
+  },
+  {
+    "question": "Which customers have spent more than 500 dollars in total?",
+    "sql": "SELECT c.id, c.name, SUM(o.total_amount) AS total_spent FROM customers c JOIN orders o ON c.id = o.customer_id WHERE o.status = 'completed' GROUP BY c.id, c.name HAVING total_spent > 500 ORDER BY total_spent DESC LIMIT 50;"
+  },
+  {
+    "question": "What are the names of customers who ordered Product 1?",
+    "sql": "SELECT DISTINCT c.id, c.name, c.email FROM customers c JOIN orders o ON c.id = o.customer_id JOIN order_items oi ON o.id = oi.order_id WHERE oi.product_id = 1 LIMIT 50;"
+  },
+  {
+    "question": "Count the number of orders per status.",
+    "sql": "SELECT status, COUNT(*) AS order_count FROM orders GROUP BY status ORDER BY order_count DESC LIMIT 50;"
+  },
+  {
+    "question": "What is the average order value?",
+    "sql": "SELECT AVG(total_amount) AS average_order_value FROM orders WHERE status = 'completed' LIMIT 50;"
+  },
+  {
+    "question": "Which product generated the most revenue?",
+    "sql": "SELECT p.id, p.name, SUM(oi.quantity * oi.unit_price) AS total_product_revenue FROM products p JOIN order_items oi ON p.id = oi.product_id GROUP BY p.id, p.name ORDER BY total_product_revenue DESC LIMIT 1;"
+  },
+  {
+    "question": "Show customers who have never placed an order.",
+    "sql": "SELECT c.id, c.name, c.email FROM customers c LEFT JOIN orders o ON c.id = o.customer_id WHERE o.id IS NULL LIMIT 50;"
+  },
+  {
+    "question": "How many units of each product were sold?",
+    "sql": "SELECT p.id, p.name, COALESCE(SUM(oi.quantity), 0) AS units_sold FROM products p LEFT JOIN order_items oi ON p.id = oi.product_id GROUP BY p.id, p.name ORDER BY units_sold DESC LIMIT 50;"
+  },
+  {
+    "question": "What is the total quantity of items in order 101?",
+    "sql": "SELECT order_id, SUM(quantity) AS total_items FROM order_items WHERE order_id = 101 GROUP BY order_id LIMIT 50;"
+  },
+  {
+    "question": "List orders with total amount greater than 100 dollars sorted by date.",
+    "sql": "SELECT id, customer_id, total_amount, order_date FROM orders WHERE total_amount > 100 ORDER BY order_date DESC LIMIT 50;"
+  },
+  {
+    "question": "Find products with low stock (less than 10 units).",
+    "sql": "SELECT id, name, category, stock FROM products WHERE stock < 10 ORDER BY stock ASC LIMIT 50;"
+  },
+  {
+    "question": "What is the total number of orders placed by customer 5?",
+    "sql": "SELECT COUNT(*) AS total_orders FROM orders WHERE customer_id = 5 LIMIT 50;"
+  },
+  {
+    "question": "Show the highest value order placed by each customer.",
+    "sql": "WITH ranked_orders AS (SELECT customer_id, id AS order_id, total_amount, ROW_NUMBER() OVER (PARTITION BY customer_id ORDER BY total_amount DESC) as rn FROM orders) SELECT customer_id, order_id, total_amount FROM ranked_orders WHERE rn = 1 LIMIT 50;"
+  }
+]
