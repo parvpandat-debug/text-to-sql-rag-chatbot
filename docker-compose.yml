@@ -1,0 +1,34 @@
+services:
+  mysql_test:
+    image: mysql:8.0
+    container_name: text_to_sql_mysql_test
+    environment:
+      MYSQL_ROOT_PASSWORD: test_root_password
+      MYSQL_DATABASE: text_to_sql
+    ports:
+      - "3306:3306"
+    volumes:
+      - ./scripts/seed.sql:/docker-entrypoint-initdb.d/01_seed.sql:ro
+      - ./scripts/create_readonly_user.sql:/docker-entrypoint-initdb.d/02_create_readonly.sql:ro
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-ptest_root_password"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  test_runner:
+    build: .
+    depends_on:
+      mysql_test:
+        condition: service_healthy
+    environment:
+      ENVIRONMENT: test
+      JWT_SECRET: super-secret-text-to-sql-token-2026-replace-in-prod
+      DB_USER: root
+      DB_PASSWORD: test_root_password
+      DB_HOST: mysql_test
+      DB_PORT: 3306
+      DB_NAME: text_to_sql
+      QUERY_DB_USER: chatbot_readonly
+      QUERY_DB_PASSWORD: readonly_secret_pass
+    command: pytest --cov=src --cov=server --cov-report=term-missing tests/

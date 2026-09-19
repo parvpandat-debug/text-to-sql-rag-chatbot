@@ -1,6 +1,43 @@
+# Environments & Secrets
 .env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Python Bytecode & Caches
 __pycache__/
-*.pyc
+*.py[cod]
+*$py.class
 .ipynb_checkpoints/
+
+# Virtual Environments
 myenv/
 .venv/
+venv/
+env/
+
+# Testing & Coverage
+.pytest_cache/
+.coverage
+.coverage.*
+coverage.xml
+htmlcov/
+
+# Vector Storage & Local Data
+data/chroma_db/
+data/test_chroma/
+data/schema_hash.txt
+*.db
+*.sqlite
+*.sqlite3
+
+# IDE & OS Artifacts
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/

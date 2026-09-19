@@ -1,0 +1,82 @@
+name: CI Test Suite
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  test:
+    name: Run Pytest Suite & Coverage
+    runs-on: ubuntu-latest
+
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: test_root_password
+          MYSQL_DATABASE: text_to_sql
+        ports:
+          - 3306:3306
+        options: --health-cmd="mysqladmin ping -ptest_root_password" --health-interval=10s --health-timeout=5s --health-retries=5
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pytest pytest-asyncio httpx pytest-cov
+
+      - name: Initialize Test Database & Read-Only User
+        run: |
+          mysql -h 127.0.0.1 -P 3306 -u root -ptest_root_password text_to_sql < scripts/seed.sql
+          mysql -h 127.0.0.1 -P 3306 -u root -ptest_root_password text_to_sql < scripts/create_readonly_user.sql
+
+      - name: Run Pytest Suite with Coverage
+        env:
+          ENVIRONMENT: ci
+          CI: "true"
+          FAIL_ON_INTEGRATION_SKIP: "1"
+          JWT_SECRET: super-secret-text-to-sql-token-2026-replace-in-prod
+          DB_USER: root
+          DB_PASSWORD: test_root_password
+          DB_HOST: 127.0.0.1
+          DB_PORT: 3306
+          DB_NAME: text_to_sql
+          QUERY_DB_USER: chatbot_readonly
+          QUERY_DB_PASSWORD: readonly_secret_pass
+        run: |
+          pytest --cov=src --cov=server --cov-report=term-missing --cov-report=xml tests/
+
+      - name: Verify Real MySQL Integration Tests (Fail If Skipped)
+        env:
+          ENVIRONMENT: ci
+          CI: "true"
+          FAIL_ON_INTEGRATION_SKIP: "1"
+          JWT_SECRET: super-secret-text-to-sql-token-2026-replace-in-prod
+          DB_USER: root
+          DB_PASSWORD: test_root_password
+          DB_HOST: 127.0.0.1
+          DB_PORT: 3306
+          DB_NAME: text_to_sql
+          QUERY_DB_USER: chatbot_readonly
+          QUERY_DB_PASSWORD: readonly_secret_pass
+        run: |
+          pytest -m integration -v
+
+      - name: Upload Coverage Artifact
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: coverage-report
+          path: coverage.xml
