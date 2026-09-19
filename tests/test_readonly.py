@@ -100,7 +100,8 @@ def test_readonly_timeout_aborted(readonly_connection):
         # Set short timeout of 500ms for this test
         cursor.execute("SET SESSION max_execution_time=500;")
         with pytest.raises(Exception) as exc:
-            cursor.execute("SELECT SLEEP(3);")
+            # Table-backed query forces row evaluation where max_execution_time aborts with Error 3024
+            cursor.execute("SELECT id, SLEEP(1) FROM products;")
         err_str = str(exc.value).lower()
         # MySQL Error 3024 / 1317: Query execution was interrupted, max_execution_time exceeded
         assert any(t in err_str for t in ["interrupted", "max_execution_time", "3024", "1317"])
